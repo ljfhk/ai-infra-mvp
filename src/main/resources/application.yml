@@ -1,0 +1,68 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: server-inspection-mvp
+  web:
+    resources:
+      static-locations:
+        - file:/opt/mvp/web-static/
+        - classpath:/static/
+      cache:
+        period: 0
+
+  datasource:
+    url: jdbc:sqlite:/opt/mvp/data/inspection.db
+    username:
+    password:
+    driver-class-name: org.sqlite.JDBC
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+inspection:
+  ssh:
+    timeout: 30000
+    port: 22
+  script:
+    path: /opt/mvp/scripts/baseline_check.sh
+  result-dir: /opt/mvp/data/results
+
+# ===== 推理服务管理（监控本地/远程 vLLM） =====
+# base-url: vLLM 的可达地址。
+#   若 vLLM 跑在本机 WSL2 并经 Windows netsh 端口转发暴露到局域网，
+#   请改成用户本机的局域网地址，例如 http://localhost:8000
+#   若 vLLM 直接跑在 182 本机，则保持 http://127.0.0.1:8000
+inference:
+  vllm:
+    base-url: http://localhost:8000
+  # 重启命令：仅当显式配置时才允许通过 /api/inference/restart 执行。
+  # 例：ssh 到运行 vLLM 的机器执行重启脚本，或本地 nohup 拉起 vLLM。
+  # 留空则重启接口返回"未配置"提示，绝不执行未知命令。
+  restart:
+    command:
+
+# ===== 推理网关（档1 轻量：鉴权/限流/路由/追踪，无第三方依赖） =====
+# default-base-url: 路由未命中时的兜底 vLLM 地址；留空则回退到 inference.vllm.base-url。
+# global-qps: 全局每秒最大请求数（0 = 不限）。Key 级 QPS 在页面/接口单独配置。
+# global-concurrency: 全局并发上限（同时进行的推理请求数，0 = 不限）。
+gateway:
+  default-base-url:
+  global-qps: 20
+  global-concurrency: 10
+
+# ===== AI Infra 能力看板（档1） =====
+infra:
+  script-dir: /opt/mvp/scripts     # 脚本交付：可执行的 Shell/Python 脚本目录
+  doc-dir: /opt/mvp/docs           # 文档聚合：部署文档/API手册/复盘 .md/.html
+  vllm-log: /opt/mvp/logs/vllm.log # 故障排查：vLLM 日志路径（按需创建）
+
+logging:
+  level:
+    com.inspection: DEBUG
+    root: INFO
+  file:
+    name: /opt/mvp/logs/inspection.log

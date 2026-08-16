@@ -1,0 +1,28 @@
+# ===================== 构建产物 =====================
+# Maven 编译输出
+target/
+
+# 前端构建产物（由 frontend/ 经 vite build 生成，部署时拷贝到 web-static/ 与 src/main/resources/static/）
+src/main/resources/static/assets/
+web-static/assets/
+frontend/dist/
+frontend/node_modules/
+
+# ===================== 运行时数据 =====================
+# SQLite 运行时库，首次启动由 schema.sql 自动建表，不入库
+*.db
+mvp.db
+
+# ===================== IDE / 编辑器 =====================
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+
+# ===================== 操作系统 =====================
+.DS_Store
+Thumbs.db
+
+# ===================== 日志 =====================
+*.log
