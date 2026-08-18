@@ -1,0 +1,39 @@
+# ===== Maven / 构建产物 =====
+target/
+*.class
+*.jar
+!**/src/**/*.jar
+
+# ===== 运行时数据（含 SQLite，绝不入库） =====
+data/
+logs/
+web-static/
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# ===== IDE =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+
+# ===== 临时 / 备份 =====
+*.bak
+*.tmp
+*~
+os_sources.txt
+
+# ===== 系统 =====
+.DS_Store
+Thumbs.db
+
+# ===== 本地环境覆盖（含密钥/真实路径，勿提交） =====
+.env
+*.local.yml
+application-local.yml

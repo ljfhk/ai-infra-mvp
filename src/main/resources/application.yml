@@ -1,0 +1,76 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: ai-infra-mvp
+  web:
+    resources:
+      static-locations:
+        - file:${WEB_STATIC_DIR:./web-static/}
+        - classpath:/static/
+      cache:
+        period: 0
+
+  datasource:
+    url: jdbc:sqlite:${DB_PATH:./data/inspection.db}
+    username:
+    password:
+    driver-class-name: org.sqlite.JDBC
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+inspection:
+  ssh:
+    timeout: 30000
+    port: 22
+  script:
+    path: ${SCRIPT_PATH:./scripts/baseline_check.sh}
+  result-dir: ${RESULT_DIR:./data/results}
+
+# ===== 推理服务管理（监控本地/远程 vLLM） =====
+# base-url: vLLM 的可达地址。
+#   若 vLLM 跑在本机，保持 http://127.0.0.1:8000
+#   若 vLLM 跑在另一台机器，改成该机器的局域网地址，例如 http://10.0.0.10:8000
+inference:
+  vllm:
+    base-url: ${VLLM_BASE_URL:http://127.0.0.1:8000}
+  # 重启命令：仅当显式配置时才允许通过 /api/inference/restart 执行。
+  # 例：ssh 到运行 vLLM 的机器执行重启脚本，或本地 nohup 拉起 vLLM。
+  # 留空则重启接口返回"未配置"提示，绝不执行未知命令。
+  restart:
+    command:
+
+# ===== 推理网关（Tier-1 轻量：鉴权/限流/路由/追踪，无第三方依赖） =====
+# default-base-url: 路由未命中时的兜底 vLLM 地址；留空则回退到 inference.vllm.base-url。
+# global-qps: 全局每秒最大请求数（0 = 不限）。Key 级 QPS 在页面/接口单独配置。
+# global-concurrency: 全局并发上限（同时进行的推理请求数，0 = 不限）。
+gateway:
+  default-base-url: ${GATEWAY_DEFAULT_BASE_URL:}
+  global-qps: ${GATEWAY_GLOBAL_QPS:20}
+  global-concurrency: ${GATEWAY_GLOBAL_CONCURRENCY:10}
+
+# ===== AI Infra 能力看板 =====
+infra:
+  script-dir: ${INFRA_SCRIPT_DIR:./scripts}     # 脚本交付：可执行的 Shell/Python 脚本目录
+  doc-dir: ${INFRA_DOC_DIR:./docs}             # 文档聚合：部署文档/API手册/复盘 .md/.html
+  vllm-log: ${INFRA_VLLM_LOG:./logs/vllm.log}  # 故障排查：vLLM 日志路径（按需创建）
+
+logging:
+  level:
+    com.inspection: INFO
+    root: INFO
+  file:
+    name: ${LOG_FILE:./logs/inspection.log}
+
+# ===== Agent Loop 目标（执行修复动作的目标机，默认本机） =====
+# 生产部署请通过环境变量注入，勿在仓库中硬编码密钥路径。
+agent:
+  target:
+    host: ${AGENT_TARGET_HOST:127.0.0.1}
+    port: ${AGENT_TARGET_PORT:22}
+    user: ${AGENT_TARGET_USER:root}
+    key: ${AGENT_TARGET_KEY:}
