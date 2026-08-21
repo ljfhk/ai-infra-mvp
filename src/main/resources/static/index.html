@@ -287,7 +287,7 @@
       <div class="page-title">模型服务</div>
 
       <div class="infer-url-bar">
-        <el-input v-model="inferenceUrl" placeholder="vLLM 地址，如 http://192.168.26.1:8000（不要带 /v1）" style="max-width:440px;"></el-input>
+        <el-input v-model="inferenceUrl" placeholder="vLLM 地址，如 http://localhost:8000（不要带 /v1）" style="max-width:440px;"></el-input>
         <el-button type="primary" @click="applyInferenceUrl" :loading="inferenceLoading">应用并刷新</el-button>
         <el-button @click="restartInference">重启服务</el-button>
         <span v-if="inferenceOnline" style="color:#67C23A;font-weight:600;">● 在线</span>
@@ -389,7 +389,7 @@
           <span>全局 QPS 上限：</span>
           <el-input v-model.number="gwConfigForm.globalQps" style="width:140px;"></el-input>
           <span>默认 vLLM 地址：</span>
-          <el-input v-model="gwConfigForm.defaultBaseUrl" placeholder="如 http://192.168.26.1:8000" style="width:280px;"></el-input>
+          <el-input v-model="gwConfigForm.defaultBaseUrl" placeholder="如 http://localhost:8000" style="width:280px;"></el-input>
           <el-button type="primary" @click="saveGwConfig">保存</el-button>
         </div>
         <el-alert type="warning" :closable="false" title="全局 QPS=0 表示不限流；Key 级 QPS 在上方 API Key 创建时设定，0 表示跟随全局。" />
@@ -400,7 +400,7 @@
         <div class="gw-section-title">多模型路由（model → vLLM 地址）</div>
         <div class="gw-form-row">
           <el-input v-model="gwRouteForm.model" placeholder="模型名，如 Qwen/Qwen2.5-1.5B-Instruct（* 为兜底）" style="width:320px;"></el-input>
-          <el-input v-model="gwRouteForm.baseUrl" placeholder="vLLM 地址，如 http://192.168.26.1:8000" style="width:280px;"></el-input>
+          <el-input v-model="gwRouteForm.baseUrl" placeholder="vLLM 地址，如 http://localhost:8000" style="width:280px;"></el-input>
           <el-button type="primary" @click="createGwRoute">添加路由</el-button>
         </div>
         <el-table :data="gwRoutes" border stripe size="small" style="width:100%;">
@@ -522,7 +522,7 @@
           <div v-if="infraTab==='api'">
             <div class="gw-section-title">OpenAI 兼容 API</div>
             <el-alert type="success" :closable="false" title="网关已提供 OpenAI 兼容接口"
-              description="Base URL: http://192.168.26.182:8080/api/gateway/v1 （配一个网关 Key 即可走鉴权+限流）" style="margin-bottom:12px;"></el-alert>
+              description="Base URL: http://localhost:8080/api/gateway/v1 （配一个网关 Key 即可走鉴权+限流）" style="margin-bottom:12px;"></el-alert>
             <el-button @click="switchTab('inference')">前往网关控制台管理 Key / 限流 / 路由</el-button>
           </div>
           <!-- 鉴权限流并发 -->
@@ -891,7 +891,7 @@
     <el-dialog v-model="dialogVisible" :title="isAddMode ? '添加节点' : '执行检查'" width="500px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="IP地址">
-          <el-input v-model="form.ip" placeholder="例如: 192.168.1.10" />
+          <el-input v-model="form.ip" placeholder="例如: 10.0.0.10" />
         </el-form-item>
         <el-form-item label="端口">
           <el-input-number v-model.number="form.port" :min="1" :max="65535" style="width: 100%"/>
