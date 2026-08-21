@@ -179,8 +179,8 @@ ai-infra-mvp/
 
 ## 开源地址
 
-- GitHub：**<https://github.com/<你的用户名>/ai-infra-mvp>** （请将 `<你的用户名>` 替换为实际账号）
-- Gitee 镜像（可选）：**<https://gitee.com/<你的用户名>/ai-infra-mvp>**
+- GitHub：**<https://github.com/ljfhk/ai-infra-mvp>**
+- Gitee 镜像（可选）：**<https://gitee.com/ljfhk/ai-infra-mvp>**
 
 欢迎 Issue / PR。如果你也在做 AI Infra 私有化运维，欢迎交流。
 
