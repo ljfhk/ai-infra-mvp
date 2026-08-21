@@ -287,7 +287,7 @@
       <div class="page-title">模型服务</div>
 
       <div class="infer-url-bar">
-        <el-input v-model="inferenceUrl" placeholder="vLLM 地址，如 http://localhost:8000（不要带 /v1）" style="max-width:440px;"></el-input>
+        <el-input v-model="inferenceUrl" placeholder="vLLM 地址，如 http://192.168.26.1:8000（不要带 /v1）" style="max-width:440px;"></el-input>
         <el-button type="primary" @click="applyInferenceUrl" :loading="inferenceLoading">应用并刷新</el-button>
         <el-button @click="restartInference">重启服务</el-button>
         <span v-if="inferenceOnline" style="color:#67C23A;font-weight:600;">● 在线</span>
@@ -389,7 +389,7 @@
           <span>全局 QPS 上限：</span>
           <el-input v-model.number="gwConfigForm.globalQps" style="width:140px;"></el-input>
           <span>默认 vLLM 地址：</span>
-          <el-input v-model="gwConfigForm.defaultBaseUrl" placeholder="如 http://localhost:8000" style="width:280px;"></el-input>
+          <el-input v-model="gwConfigForm.defaultBaseUrl" placeholder="如 http://192.168.26.1:8000" style="width:280px;"></el-input>
           <el-button type="primary" @click="saveGwConfig">保存</el-button>
         </div>
         <el-alert type="warning" :closable="false" title="全局 QPS=0 表示不限流；Key 级 QPS 在上方 API Key 创建时设定，0 表示跟随全局。" />
@@ -400,7 +400,7 @@
         <div class="gw-section-title">多模型路由（model → vLLM 地址）</div>
         <div class="gw-form-row">
           <el-input v-model="gwRouteForm.model" placeholder="模型名，如 Qwen/Qwen2.5-1.5B-Instruct（* 为兜底）" style="width:320px;"></el-input>
-          <el-input v-model="gwRouteForm.baseUrl" placeholder="vLLM 地址，如 http://localhost:8000" style="width:280px;"></el-input>
+          <el-input v-model="gwRouteForm.baseUrl" placeholder="vLLM 地址，如 http://192.168.26.1:8000" style="width:280px;"></el-input>
           <el-button type="primary" @click="createGwRoute">添加路由</el-button>
         </div>
         <el-table :data="gwRoutes" border stripe size="small" style="width:100%;">
@@ -522,7 +522,7 @@
           <div v-if="infraTab==='api'">
             <div class="gw-section-title">OpenAI 兼容 API</div>
             <el-alert type="success" :closable="false" title="网关已提供 OpenAI 兼容接口"
-              description="Base URL: http://localhost:8080/api/gateway/v1 （配一个网关 Key 即可走鉴权+限流）" style="margin-bottom:12px;"></el-alert>
+              description="Base URL: http://192.168.26.182:8080/api/gateway/v1 （配一个网关 Key 即可走鉴权+限流）" style="margin-bottom:12px;"></el-alert>
             <el-button @click="switchTab('inference')">前往网关控制台管理 Key / 限流 / 路由</el-button>
           </div>
           <!-- 鉴权限流并发 -->
@@ -643,7 +643,7 @@
           <!-- Multi-Agent / A2A -->
           <div v-if="infraTab==='multiagent'">
             <div class="gw-section-title">Multi-Agent / A2A 协作</div>
-            <el-alert type="warning" :closable="false" title="规范 + 演示态" description="已定义 AgentCard 与 task 接口规范；真实多 Agent 协作留作后续演进。" style="margin-bottom:10px;"></el-alert>
+            <el-alert type="warning" :closable="false" title="规范 + 演示态（无需下载模型/新依赖）" description="已定义 AgentCard 与 task 接口规范，点击下方可拉取真实 AgentCard；真实多 Agent 协作留作后续演进。" style="margin-bottom:10px;"></el-alert>
             <div class="gw-form-row">
               <span class="infra-btn infra-btn-primary" @click="loadAgentCard">获取 AgentCard</span>
             </div>
@@ -653,7 +653,7 @@
           <!-- MCP -->
           <div v-if="infraTab==='framework'">
             <div class="gw-section-title">LangChain / LangGraph / MCP</div>
-            <el-alert type="warning" :closable="false" title="MCP 已落地 · LangGraph 未做" description="巡检/修复脚本已封装为 MCP Tool（list/call 接口，兼容 JSON-RPC）；LangGraph 编排复用原生状态机。" style="margin-bottom:10px;"></el-alert>
+            <el-alert type="warning" :closable="false" title="MCP 已落地 · LangGraph 未做（无需下载模型/新依赖）" description="巡检/修复脚本已封装为 MCP Tool（list/call 接口，兼容 JSON-RPC）；LangChain/LangGraph 库未引入（Java 生态意义有限），编排复用原生状态机。" style="margin-bottom:10px;"></el-alert>
             <div class="gw-form-row">
               <span class="infra-btn infra-btn-primary" @click="loadMcpTools">列出 MCP Tools</span>
             </div>
@@ -709,6 +709,59 @@
               <el-table-column prop="created_at" label="时间"/>
             </el-table>
           </div>
+          <!-- Prompt / 上下文 / 参考素材 -->
+          <div v-if="infraTab==='prompt'">
+            <div class="gw-section-title">Prompt / 上下文 / 参考素材</div>
+            <el-alert type="success" :closable="false" title="已落地（无需下载模型/新依赖）" description="内置系统提示模板 + 自动注入历史故障记忆作为参考素材，拼装最终 prompt 并可直接执行 LLM。" style="margin-bottom:10px;"></el-alert>
+            <div class="gw-form-row" style="margin-bottom:8px;">
+              <span>模板：</span>
+              <el-select v-model="llmTemplate" style="width:200px;">
+                <el-option label="诊断摘要" value="diag_summary"/>
+                <el-option label="修复建议" value="fix_suggestion"/>
+                <el-option label="通用问答" value="generic"/>
+              </el-select>
+              <span class="infra-btn infra-btn-primary" @click="buildPrompt">拼装 Prompt</span>
+            </div>
+            <el-input v-model="llmIssue" type="textarea" :rows="3" placeholder="当前问题，例如：vLLM 服务显存不足，推理请求报错" style="margin-bottom:8px;"></el-input>
+            <div class="gw-section-sub" v-if="llmContext && llmContext.length">参考素材（记忆召回 {{ llmContext.length }} 条）</div>
+            <table v-if="llmContext && llmContext.length" class="infra-table">
+              <thead><tr><th>分类</th><th>问题</th><th>修复</th></tr></thead>
+              <tbody>
+                <tr v-for="c in llmContext" :key="c.id"><td>{{ c.category }}</td><td>{{ c.problem }}</td><td>{{ c.fix }}</td></tr>
+              </tbody>
+            </table>
+            <pre class="infra-pre" v-if="llmFinalPrompt">{{ llmFinalPrompt }}</pre>
+            <div class="gw-form-row" style="margin-top:8px;" v-if="llmFinalPrompt">
+              <span class="infra-btn infra-btn-primary" @click="runComplete">{{ llmLoading ? '执行中...' : '执行 LLM' }}</span>
+            </div>
+            <pre class="infra-pre" v-if="llmCompleteText">LLM 输出：
+{{ llmCompleteText }}</pre>
+          </div>
+
+          <!-- 结构化输出 -->
+          <div v-if="infraTab==='struct'">
+            <div class="gw-section-title">结构化输出（JSON Schema 约束）</div>
+            <el-alert type="success" :closable="false" title="已落地（无需下载模型/新依赖）" description="让 LLM 按指定 JSON Schema 输出，后端容错解析（去 markdown / 截取对象），可直接程序化处理。" style="margin-bottom:10px;"></el-alert>
+            <div class="gw-form-row" style="margin-bottom:8px;">
+              <span>Schema：</span>
+              <el-select v-model="structSchema" style="width:200px;">
+                <el-option label="故障诊断" value="diagnosis"/>
+                <el-option label="修复方案" value="fix"/>
+              </el-select>
+              <span class="infra-btn infra-btn-primary" @click="runStructured">{{ structLoading ? '生成中...' : '生成结构化输出' }}</span>
+            </div>
+            <el-input v-model="structIssue" type="textarea" :rows="3" placeholder="故障现象，例如：vLLM 启动报 CUDA out of memory，RTX 5060 8GB" style="margin-bottom:8px;"></el-input>
+            <pre class="infra-pre" v-if="structRaw">原始输出：
+{{ structRaw }}</pre>
+            <div class="gw-section-sub" v-if="structParsed">解析结果（valid={{ structValid }}）</div>
+            <table v-if="structParsed" class="infra-table">
+              <thead><tr><th>字段</th><th>值</th></tr></thead>
+              <tbody>
+                <tr v-for="(v,k) in structParsed" :key="k"><td>{{ k }}</td><td>{{ v }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+
           <!-- 故障排查 -->
           <div v-if="infraTab==='diag'">
             <div class="gw-section-title">故障排查（OOM / CUDA / 超时 / 端口 / 资源）</div>
@@ -838,7 +891,7 @@
     <el-dialog v-model="dialogVisible" :title="isAddMode ? '添加节点' : '执行检查'" width="500px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="IP地址">
-          <el-input v-model="form.ip" placeholder="例如: 10.0.0.10" />
+          <el-input v-model="form.ip" placeholder="例如: 192.168.1.10" />
         </el-form-item>
         <el-form-item label="端口">
           <el-input-number v-model.number="form.port" :min="1" :max="65535" style="width: 100%"/>
@@ -985,8 +1038,64 @@
 
   <div id="app"></div>
 
+  <div id="login-mask" style="display:flex;position:fixed;inset:0;z-index:9999;background:rgba(244,246,249,0.97);align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Microsoft YaHei',sans-serif;">
+    <div style="background:#ffffff;border:1px solid #e4e9f0;border-radius:14px;padding:30px 34px;width:330px;box-shadow:0 8px 30px rgba(20,40,80,0.10);">
+      <div style="font-size:17px;font-weight:600;color:#1f2d3d;margin-bottom:6px;">AI Infra MVP</div>
+      <div style="font-size:12px;color:#8a94a6;margin-bottom:20px;">请输入访问口令以继续</div>
+      <input id="login-password" type="password" placeholder="访问口令" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid #d8dee9;border-radius:9px;font-size:14px;outline:none;" />
+      <button onclick="doLogin()" style="margin-top:16px;width:100%;padding:11px 0;background:#185FA5;color:#ffffff;border:none;border-radius:9px;font-size:14px;cursor:pointer;">登录</button>
+      <div id="login-err" style="color:#d85a30;font-size:12px;margin-top:11px;min-height:16px;"></div>
+    </div>
+  </div>
+
+  <div id="role-badge" style="display:none;position:fixed;top:10px;right:14px;z-index:9998;padding:5px 13px;border-radius:14px;font-size:12px;font-weight:600;border:1px solid #91d5ff;background:#e6f4ff;color:#096dd9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;box-shadow:0 2px 8px rgba(20,40,80,0.06);"></div>
+
   <script>
     const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+
+    // ===== 登录鉴权 =====
+    const AUTH_TOKEN_KEY = 'ai_infra_token';
+    function getAuthToken(){ return localStorage.getItem(AUTH_TOKEN_KEY) || ''; }
+    function setAuthToken(t){ localStorage.setItem(AUTH_TOKEN_KEY, t); }
+    function showLoginMask(){ const m=document.getElementById('login-mask'); if(m) m.style.display='flex'; }
+    function hideLoginMask(){ const m=document.getElementById('login-mask'); if(m) m.style.display='none'; }
+    const AUTH_ROLE_KEY='ai_infra_role';
+    function getAuthRole(){ return localStorage.getItem(AUTH_ROLE_KEY) || ''; }
+    function setAuthRole(r){ localStorage.setItem(AUTH_ROLE_KEY, r||''); updateRoleBadge(); }
+    function updateRoleBadge(){
+      const b=document.getElementById('role-badge'); if(!b) return;
+      const role=getAuthRole();
+      if(!role){ b.style.display='none'; return; }
+      if(role==='guest'){ b.textContent='访客模式 · 仅可查看与体验 LLM'; b.style.background='#fff7e6'; b.style.color='#ad6800'; b.style.borderColor='#ffe7ba'; }
+      else { b.textContent='管理后台 · 全部权限'; b.style.background='#e6f4ff'; b.style.color='#096dd9'; b.style.borderColor='#91d5ff'; }
+      b.style.display='block';
+    }
+
+    axios.interceptors.request.use(function(cfg){
+      const t=getAuthToken();
+      if(t){ cfg.headers=cfg.headers||{}; cfg.headers['Authorization']='Bearer '+t; }
+      if(getAuthRole()==='guest'){
+        const m=(cfg.method||'get').toLowerCase();
+        const allow=['/api/llm/prompt','/api/llm/complete','/api/llm/structured'];
+        if(m!=='get' && allow.indexOf(cfg.url)<0){
+          if(window.ElementPlus && ElementPlus.ElMessage){ ElementPlus.ElMessage.warning('演示模式仅支持查看与 LLM 体验，不能执行操作'); }
+          return Promise.reject(new Error('demo_readonly'));
+        }
+      }
+      return cfg;
+    });
+    axios.interceptors.response.use(function(r){ return r; }, function(err){
+      if(err && err.response && err.response.status===401){ showLoginMask(); }
+      return Promise.reject(err);
+    });
+    function doLogin(){
+      const pwd=document.getElementById('login-password').value||'';
+      axios.post('/api/login',{password:pwd},{timeout:8000}).then(function(r){
+        if(r.data&&r.data.token){ setAuthToken(r.data.token); setAuthRole(r.data.role); location.reload(); }
+        else { const e=document.getElementById('login-err'); if(e) e.textContent='登录失败：口令错误'; }
+      }).catch(function(){ const e=document.getElementById('login-err'); if(e) e.textContent='无后端响应或网络异常'; });
+    }
+    window.doLogin=doLogin;
 
     const app = createApp({
       template: '#app-template',
@@ -1568,8 +1677,8 @@
             children:[
               {key:'script', name:'脚本交付/Skill/Tool 调用', status:'done'},
               {key:'quant', name:'量化方案(AWQ/GPTQ)', status:'partial'},
-              {key:'prompt', name:'Prompt/上下文/参考素材', status:'todo', note:'JD 要求：Prompt 优化、上下文管理、参考素材注入、参数配置。落地路径：在 Agent 编排侧提供 Prompt 模板管理与上下文窗口压缩。'},
-              {key:'struct', name:'结构化输出', status:'todo', note:'JD 要求：工具调用与结构化输出。落地路径：网关层支持 JSON Schema 约束输出 / 函数调用封装。'}
+              {key:'prompt', name:'Prompt/上下文/参考素材', status:'partial', note:'已落地（无需下载模型/新依赖）：内置 Prompt 模板 + 自动注入历史故障记忆作参考素材，拼装最终 prompt 并可执行 LLM。'},
+              {key:'struct', name:'结构化输出', status:'partial', note:'已落地（无需下载模型/新依赖）：支持 JSON Schema 约束输出，后端容错解析（去 markdown/截取对象），可直接程序化处理。'}
             ]
           },
           {
@@ -1578,8 +1687,8 @@
             children:[
               {key:'memory', name:'长短期记忆/上下文压缩', status:'done', note:'已落地：基于 SQLite 的轻量记忆层，短期会话上下文 + 长期故障记忆，复用本地 Qwen 做摘要/召回，无需额外下载模型。'},
               {key:'agentloop', name:'Agent Loop 编排', status:'done', note:'已落地：诊断→建议→人确认→执行 闭环状态机，复用 InfraService 诊断 + MemoryService 召回历史 + LLM 生成建议。'},
-              {key:'multiagent', name:'Multi-Agent/A2A 协作', status:'partial', note:'规范 + 演示态：已定义 AgentCard 与 task 接口规范，真实多 Agent 协作留作后续演进。'},
-              {key:'framework', name:'LangChain/LangGraph/MCP', status:'partial', note:'已落地：巡检/修复脚本封装为 MCP Tool（list/call 接口）；LangGraph 编排未做，复用原生状态机。'},
+              {key:'multiagent', name:'Multi-Agent/A2A 协作', status:'partial', note:'规范+演示态（无需下载模型/新依赖）：已定义 A2A AgentCard 与 task 接口规范并可在面板拉取真实卡片；真实多 Agent 协作留作后续演进。'},
+              {key:'framework', name:'LangChain/LangGraph/MCP', status:'partial', note:'MCP 已真实落地（无需下载模型/新依赖）：巡检/修复脚本封装为 MCP Tool，支持 list/call 与 JSON-RPC；LangChain/LangGraph 库未引入（Java 生态意义有限），编排复用原生状态机。'},
               {key:'fallback', name:'异常重试/Fallback/降级', status:'done', note:'已落地：网关层失败自动重试 + 多 route 优先级兜底降级，超时/5xx 自动切备用模型，事件落 SQLite。'}
             ]
           },
@@ -1630,6 +1739,19 @@
         const gwRetryCount = ref(2);
         const gwFallbackEnabled = ref(true);
         const gwFallbackLogs = ref(null);
+        // 效果优化层：Prompt / 结构化输出
+        const llmTemplate = ref('fix_suggestion');
+        const llmIssue = ref('');
+        const llmFinalPrompt = ref('');
+        const llmContext = ref(null);
+        const llmCompleteText = ref('');
+        const llmLoading = ref(false);
+        const structSchema = ref('diagnosis');
+        const structIssue = ref('');
+        const structRaw = ref('');
+        const structParsed = ref(null);
+        const structValid = ref(false);
+        const structLoading = ref(false);
         const infraBenchList = ref([]);
         const infraQuant = ref({baseModel:'', method:'awq', bits:4});
         const infraQuantLoading = ref(false);
@@ -1651,7 +1773,7 @@
         const infraScriptOutput = ref('');
         const infraDocs = ref([]);
 
-        function badgeText(s){ return s==='done'?'✔ 已落地':(s==='partial'?'🟡 占位':'🔵 待建'); }
+        function badgeText(s){ return s==='done'?'✔ 已落地':(s==='partial'?'🟡 部分/演示':'🔵 待建'); }
         function fmtNum(v, n){ var x = parseFloat(v); return isNaN(x)?'-':x.toFixed(n); }
         function doneCount(g){ var c = 0; g.children.forEach(function(m){ if(m.status==='done') c++; }); return c; }
         function groupAbbr(name){
@@ -1819,6 +1941,34 @@
           axios.get('/api/infra/benchmark/list').then(function(r){ return r.data; }).then(function(d){
             if(d && d.success) infraBenchList.value = d.data;
           }).catch(function(){});
+        }
+        // 效果优化层：Prompt 拼装 + 执行；结构化输出
+        function buildPrompt(){
+          axios.post('/api/llm/prompt', { template: llmTemplate.value, issue: llmIssue.value }).then(function(r){
+            var d = r.data;
+            llmFinalPrompt.value = d.finalPrompt || '';
+            llmContext.value = d.context || null;
+          }).catch(function(e){ ElementPlus.Message.error('拼装失败: ' + (e.message||e)); });
+        }
+        function runComplete(){
+          if(!llmFinalPrompt.value){ ElementPlus.Message.warning('请先拼装 Prompt'); return; }
+          llmLoading.value = true;
+          axios.post('/api/llm/complete', { prompt: llmFinalPrompt.value }).then(function(r){
+            llmCompleteText.value = (r.data && r.data.text) || '(空)';
+          }).catch(function(e){ ElementPlus.Message.error('执行失败: ' + (e.message||e)); })
+            .finally(function(){ llmLoading.value = false; });
+        }
+        function runStructured(){
+          if(!structIssue.value){ ElementPlus.Message.warning('请填写故障现象'); return; }
+          structLoading.value = true;
+          axios.post('/api/llm/structured', { schemaName: structSchema.value, issue: structIssue.value }).then(function(r){
+            var d = r.data || {};
+            structRaw.value = d.raw || '';
+            structParsed.value = d.parsed || null;
+            structValid.value = !!d.valid;
+            if(!d.valid) ElementPlus.Message.warning('结构化解析失败，可看原始输出');
+          }).catch(function(e){ ElementPlus.Message.error('生成失败: ' + (e.message||e)); })
+            .finally(function(){ structLoading.value = false; });
         }
         function submitInfraQuant(){
           if(!infraQuant.value.baseModel){ ElementPlus.Message.warning('请填写基座模型'); return; }
@@ -2031,13 +2181,16 @@
           doneCount, groupAbbr, toggleInfraSidebar, startInfraResize, startInfraVResize, isTodoTab, currentModuleName, currentModuleNote,
           agentIssue, agentRunning, agentResult, agentConfirming, agentExecResult, agentSessionId,
           memoryQuery, memoryRecallList, agentCardText, mcpToolsList, gwRetryCount, gwFallbackEnabled, gwFallbackLogs,
-          runAgentLoop, confirmAgentLoop, recallMemory, loadAgentCard, loadMcpTools, saveGwRetry
+          runAgentLoop, confirmAgentLoop, recallMemory, loadAgentCard, loadMcpTools, saveGwRetry,
+          llmTemplate, llmIssue, llmFinalPrompt, llmContext, llmCompleteText, llmLoading,
+          structSchema, structIssue, structRaw, structParsed, structValid, structLoading,
+          buildPrompt, runComplete, runStructured
         };
       }
     });
 
     app.use(ElementPlus, { size: 'default' });
-    app.mount('#app');
+    if (getAuthToken()) { hideLoginMask(); updateRoleBadge(); app.mount('#app'); } else { showLoginMask(); }
   </script>
 </body>
 </html>
